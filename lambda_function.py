@@ -1,5 +1,5 @@
 import boto3, cv2, time, numpy as np, matplotlib.pyplot as plt, random
-import base64, json, os
+import base64, json, os, re
 
 def parse_s3_uri(s3_uri):
     """
