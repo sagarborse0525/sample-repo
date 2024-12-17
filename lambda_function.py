@@ -107,7 +107,7 @@ def lambda_handler(event, context):
     cv2.imwrite(processed_image_path, orig_image)
 
     # Upload the image to S3
-    bucket_name = 'your-s3-bucket-name'
+    bucket_name = 'ai-snb-dataset-bucket'
     s3_key = 'image-segmentation/output_image/processed_image.jpg'
     s3_client.upload_file(processed_image_path, bucket_name, s3_key)
     print(f"Image uploaded to S3 bucket {bucket_name} with key {s3_key}")
