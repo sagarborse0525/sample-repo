@@ -153,7 +153,7 @@ def lambda_handler(event, context):
  
     return {
         'StatusCode': 200,
-        'ImageInputS3Uri': 's3://'+bucket_name+'/'+ image_output_prefix
+        'ImageOutputS3Uri': 's3://'+bucket_name+'/'+ image_output_prefix
     }
     # return {
     #     'statusCode': 200,
