@@ -1,6 +1,18 @@
 import boto3, cv2, time, numpy as np, matplotlib.pyplot as plt, random
-import base64, json
+import base64, json, os
 
+def parse_s3_uri(s3_uri):
+    """
+    Parses an S3 URI and extracts the bucket name and prefix.
+    :param s3_uri: str, S3 URI in the format s3://bucket-name/path/to/file
+    :return: tuple(bucket_name, prefix)
+    """
+    pattern = r'^s3://([^/]+)/(.+)$'  # Regex to match the S3 bucket and prefix
+    match = re.match(pattern, s3_uri)
+    if not match:
+        raise ValueError("Invalid S3 URI format. Must be in s3://bucket-name/path format.")
+    bucket_name, prefix = match.groups()
+    return bucket_name, prefix
 
 def lambda_handler(event, context):
     # TODO implement
@@ -13,19 +25,36 @@ def lambda_handler(event, context):
     print(f'Endpoint Name: {ENDPOINT_NAME}')
 
     endpoint_created = False
-    while True:
-        response = sm_client.list_endpoints()
-        for ep in response['Endpoints']:
-            print(f"Endpoint Status = {ep['EndpointStatus']}")
-            if ep['EndpointName']==ENDPOINT_NAME and ep['EndpointStatus']=='InService':
-                endpoint_created = True
-                break
-        if endpoint_created:
+    
+    response = sm_client.list_endpoints()
+    for ep in response['Endpoints']:
+        print(f"Endpoint Status = {ep['EndpointStatus']}")
+        if ep['EndpointName']==ENDPOINT_NAME and ep['EndpointStatus']=='InService':
+            endpoint_created = True
             break
-        time.sleep(5)
+    
+    #extract bucket name and file prefix from image_s3_uri
+    # image_input_s3_uri = "s3://subas-dash-tcs/yolo8-aws-model-1/images/input/bus.jpg"
+    image_input_s3_uri = event.get('ImageInputS3Uri')
+ 
+    # Example usage
+    bucket_name, file_prefix = parse_s3_uri(image_input_s3_uri)
+    print("Bucket Name:", bucket_name)
+    print("Prefix:", file_prefix)
+ 
+    # bucket_name = "subas-dash-tcs"
+    # file_prefix = "yolo8-aws-model-1/images/input/bus.jpg"
+ 
+    image_name = file_prefix.split('/')[-1]
+    image_local_dir = '/tmp'
+    image_local_path = os.path.join(image_local_dir, image_name)
+    # download the file from s3
+
+    s3.download_file(bucket_name, file_prefix, image_local_path)
+    print("Image file download....")
     infer_start_time = time.time()
     # Read the image into a numpy  array
-    orig_image = cv2.imread('images-5.jpg')
+    orig_image = cv2.imread(image_local_path)
 
     # Calculate the parameters for image resizing
     image_height, image_width, _ = orig_image.shape
@@ -107,13 +136,26 @@ def lambda_handler(event, context):
     cv2.imwrite(processed_image_path, orig_image)
 
     # Upload the image to S3
-    bucket_name = 'ai-snb-dataset-bucket'
-    s3_key = 'image-segmentation/output_image/processed_image.jpg'
-    s3_client.upload_file(processed_image_path, bucket_name, s3_key)
-    print(f"Image uploaded to S3 bucket {bucket_name} with key {s3_key}")
-    plt.imshow(cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB))
-    plt.show()
+    # # bucket_name = 'ai-snb-dataset-bucket'
+    # s3_key = 'image-segmentation/output_image/processed_image.jpg'
+    # s3_client.upload_file(processed_image_path, bucket_name, s3_key)
+    # print(f"Image uploaded to S3 bucket {bucket_name} with key {s3_key}")
+    # # plt.imshow(cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB))
+    # # plt.show()
+
+    # image_output_dir = '/tmp'
+    # image_output_path = os.path.join(image_output_dir, image_name)
+    # image_output_prefix = os.getenv('IMAGE_OUTPUT_PREFIX')
+    image_output_prefix = 'image-segmentation/output_image'
+    image_output_prefix = image_output_prefix + '/' + image_name
+    cv2.imwrite(image_output_path)
+    s3.upload_file(processed_image_path, bucket_name, image_output_prefix )
+ 
     return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
+        'StatusCode': 200,
+        'ImageInputS3Uri': 's3://'+bucket_name+'/'+ image_output_prefix
     }
+    # return {
+    #     'statusCode': 200,
+    #     'body': json.dumps('Hello from Lambda!')
+    # }
