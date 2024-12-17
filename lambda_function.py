@@ -101,6 +101,15 @@ def lambda_handler(event, context):
                     continue
                 cv2.line(orig_image, (int(x_ratio*start_keypoint[:2][0]),int(y_ratio*start_keypoint[:2][1])),(int(x_ratio*end_keypoint[:2][0]),int(y_ratio*end_keypoint[:2][1])), color=line_color, thickness=2)
 
+    # Save the processed image to a temporary location
+    processed_image_path = '/tmp/processed_image.jpg'
+    cv2.imwrite(processed_image_path, orig_image)
+
+    # Upload the image to S3
+    bucket_name = 'your-s3-bucket-name'
+    s3_key = 'image-segmentation/output_image/processed_image.jpg'
+    s3_client.upload_file(processed_image_path, bucket_name, s3_key)
+    print(f"Image uploaded to S3 bucket {bucket_name} with key {s3_key}")
     plt.imshow(cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB))
     plt.show()
     return {
