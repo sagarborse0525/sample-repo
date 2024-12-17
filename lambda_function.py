@@ -148,7 +148,7 @@ def lambda_handler(event, context):
     # image_output_prefix = os.getenv('IMAGE_OUTPUT_PREFIX')
     image_output_prefix = 'image-segmentation/output_image'
     image_output_prefix = image_output_prefix + '/' + image_name
-    cv2.imwrite(image_output_path)
+    # cv2.imwrite(image_output_path)
     s3_client.upload_file(processed_image_path, bucket_name, image_output_prefix )
  
     return {
