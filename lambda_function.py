@@ -5,6 +5,7 @@ import base64, json
 def lambda_handler(event, context):
     # TODO implement
     sm_client = boto3.client(service_name="sagemaker")
+    s3_client = boto3.client('s3')
 
     # Restore the endpoint name stored in the 2_DeployEndpoint.ipynb notebook
     # %store -r ENDPOINT_NAME
