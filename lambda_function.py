@@ -50,7 +50,7 @@ def lambda_handler(event, context):
     image_local_path = os.path.join(image_local_dir, image_name)
     # download the file from s3
 
-    s3.download_file(bucket_name, file_prefix, image_local_path)
+    s3_client.download_file(bucket_name, file_prefix, image_local_path)
     print("Image file download....")
     infer_start_time = time.time()
     # Read the image into a numpy  array
@@ -149,7 +149,7 @@ def lambda_handler(event, context):
     image_output_prefix = 'image-segmentation/output_image'
     image_output_prefix = image_output_prefix + '/' + image_name
     cv2.imwrite(image_output_path)
-    s3.upload_file(processed_image_path, bucket_name, image_output_prefix )
+    s3_client.upload_file(processed_image_path, bucket_name, image_output_prefix )
  
     return {
         'StatusCode': 200,
