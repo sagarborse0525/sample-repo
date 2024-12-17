@@ -1,17 +1,13 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:latest
+FROM public.ecr.aws/lambda/python:3.12
 
-# Install dependencies
-RUN yum update -y && yum install -y httpd
+# Copy requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-# Install apache and write hello world message
-RUN echo 'Hello Sagar...!' > /var/www/html/index.html
+# Install the specified packages
+RUN pip install -r requirements.txt
 
-# Configure apache
-RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
-echo 'mkdir -p /var/lock/httpd' >> /root/run_apache.sh && \
-echo '/usr/sbin/httpd - D FOREGROUND' >> /root/run_apache.sh && \
-chmod 755 /root/run_apache.sh
+# Copy function code
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
-EXPOSE 80
-
-CMD /root/run_apache.sh
+# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
+CMD [ "lambda_function.handler" ]
