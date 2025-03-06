@@ -1,6 +1,6 @@
 import boto3, cv2, time, numpy as np, matplotlib.pyplot as plt, random
 import base64, json, os, re
-
+import boto3
 def parse_s3_uri(s3_uri):
     """
     Parses an S3 URI and extracts the bucket name and prefix.
